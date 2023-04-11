@@ -46,7 +46,13 @@ public class ChatClient implements Runnable{
 
 			try {			
 				str = input.readLine();
-				UI.appendMessage(str);
+				if (str.charAt(0) == '@') {
+					UI.appendPM(str.substring(1));
+					
+				} else {
+					UI.appendMessage(str);
+					
+				}
 				
 				System.out.print("Server : " + str + "\n");
 			} catch (IOException e) {

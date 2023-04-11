@@ -47,23 +47,16 @@ public class UserInterface {
 
 		frame.setTitle("Chat Client: " + username);
 		ChatClient cc = new ChatClient(username, this);
-		// ChatInput ci = new ChatInput(cc);
 
 		ExecutorService executor = Executors.newFixedThreadPool(2);
 		executor.execute(cc);
-		// executor.execute(ci);
 
-//		textArea = new JTextArea(15, 25);
 		textArea = new JTextPane();
 		textArea.setEditable(false);
 		
 		DefaultCaret caret = (DefaultCaret)textArea.getCaret();
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-//		textArea.setLineWrap(true);
-//		textArea.setWrapStyleWord(true);
-//		textArea.setPreferredSize(new Dimension(100, 100));
-//		textArea.setVisible(true);
-//		
+		
 		JScrollPane scrollArea = new JScrollPane(textArea);
 		scrollArea.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		scrollArea.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -74,7 +67,12 @@ public class UserInterface {
 
 			String field = textField.getText();
 			if (field.length() > 0) {
-				appendMessage();
+				
+				if(field.charAt(0) == '@') {
+					appendPM();
+				}else
+					appendMessage();
+				
 				cc.sendMessage(textField.getText());
 				textField.setText("");
 
@@ -119,4 +117,25 @@ public class UserInterface {
 	public void appendMessage() {
 		appendMessage(username + ": " + textField.getText());
 	}
+	
+	public void appendPM() {
+		appendPM(username + ": " + textField.getText());
+	}
+	
+	public void appendPM(String message) {
+		time = LocalTime.now();
+		String current = time.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+		try {
+			StyledDocument doc = textArea.getStyledDocument();
+			Style style = textArea.addStyle("", null);
+			StyleConstants.setForeground(style, Color.GREEN);
+			doc.insertString(doc.getLength(), current + ": ", style);
+			StyleConstants.setForeground(style, Color.BLUE);
+			doc.insertString(doc.getLength(), message + "\n", style);
+		} catch (Exception e) {
+
+		}
+	}
+	
+	
 }
