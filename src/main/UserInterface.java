@@ -1,6 +1,10 @@
 package main;
 
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutorService;
@@ -10,15 +14,20 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
+import javax.swing.text.DefaultCaret;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 
 public class UserInterface {
 
 	private String username;
-	private JTextArea textArea;
+//	private JTextArea textArea;
 	private JTextField textField;
-	
+	private JTextPane textArea;
+
 	private LocalTime time = LocalTime.now();
 
 	public UserInterface() {
@@ -28,7 +37,8 @@ public class UserInterface {
 		frame.setLocationRelativeTo(null);
 
 		JPanel panel = new JPanel();
-		panel.setLayout(new FlowLayout());
+		panel.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
 
 		while (username == null || "".equals(username)) {
 
@@ -37,22 +47,27 @@ public class UserInterface {
 
 		frame.setTitle("Chat Client: " + username);
 		ChatClient cc = new ChatClient(username, this);
-		//ChatInput ci = new ChatInput(cc);
+		// ChatInput ci = new ChatInput(cc);
 
 		ExecutorService executor = Executors.newFixedThreadPool(2);
 		executor.execute(cc);
-		//executor.execute(ci);
+		// executor.execute(ci);
 
-		textArea = new JTextArea(15, 25);
+//		textArea = new JTextArea(15, 25);
+		textArea = new JTextPane();
 		textArea.setEditable(false);
-		textArea.setLineWrap(true);
-		textArea.setWrapStyleWord(true);
+		
+		DefaultCaret caret = (DefaultCaret)textArea.getCaret();
+		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+//		textArea.setLineWrap(true);
+//		textArea.setWrapStyleWord(true);
 //		textArea.setPreferredSize(new Dimension(100, 100));
 //		textArea.setVisible(true);
 //		
 		JScrollPane scrollArea = new JScrollPane(textArea);
 		scrollArea.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		scrollArea.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		scrollArea.setPreferredSize(new Dimension(300, 200));
 
 		textField = new JTextField(20);
 		textField.addActionListener(e -> {
@@ -67,21 +82,18 @@ public class UserInterface {
 
 		});
 
-//		JLabel label = new JLabel("JFrame By Example");  
-//        JButton button = new JButton();  
-//        button.setText("Button");  
-//        
-//        button.addActionListener(e->{
-//			System.out.println(e.toString());
-//			textArea.append("Sausages");
-//			
-//			
-//		});
-//        panel.add(label);  
-//        panel.add(button); 
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 0;
+		c.gridy = 0;
+		c.gridwidth = 2;
 
-		panel.add(scrollArea);
-		panel.add(textField);
+		panel.add(scrollArea, c);
+		
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridwidth = 2;
+		c.gridx = 0;
+		c.gridy = 1;
+		panel.add(textField, c);
 
 		frame.add(panel);
 		frame.pack();
@@ -92,12 +104,19 @@ public class UserInterface {
 	public void appendMessage(String message) {
 		time = LocalTime.now();
 		String current = time.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-		textArea.append(current + ": " + message + "\n");
+		try {
+			StyledDocument doc = textArea.getStyledDocument();
+			Style style = textArea.addStyle("", null);
+			StyleConstants.setForeground(style, Color.GREEN);
+			doc.insertString(doc.getLength(), current + ": ", style);
+			StyleConstants.setForeground(style, Color.BLACK);
+			doc.insertString(doc.getLength(), message + "\n", style);
+		} catch (Exception e) {
+
+		}
 	}
 
 	public void appendMessage() {
-		time = LocalTime.now();
-		String current = time.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-		textArea.append(current + ": " + username + ": " + textField.getText() + "\n");
+		appendMessage(username + ": " + textField.getText());
 	}
 }
